@@ -1,0 +1,7 @@
+name = Legislative VRE customizations
+description = Module for legislative VRE customizations such as search results display
+dependencies[] = islandora_solr_search
+description = Customizes Islandora solr search
+package = Islandora Search
+version = 11.3.1
+core = 6.x

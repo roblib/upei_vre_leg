@@ -1,0 +1,70 @@
+<?php
+
+
+
+
+/**
+ * @file
+ * Configuration module for islandora_solr_search.module
+ */
+
+/**
+ * Implements hook_islandora_solr_primary_display()
+ */
+function upei_vre_leg_islandora_solr_primary_display() {
+  return array(   
+    'vre_leg_table' => array(
+      'name' => t('Legislative Results'),
+      'module' => 'upei_vre_leg',
+      'file' => 'LegVreSolrResults.inc',
+      'class' => "LegVreSolrResults",
+      'function' => "displayResults",
+      'description' => t("A simple tabular output"),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_help()
+ */
+function upei_vre_leg_help($path, $arg) {
+
+  switch ($path) {
+    case 'admin/help#islandora_solr_config':
+      return t("When 'Sample Solr Configuration Settings' is selected from the configuration drop-down in the<br />
+        !page the following settings will be used.
+        <ul>
+        <li>Module - islandora_solr_config</l1>
+        <li>File - IslandoraSolrResultsTable.inc</l1>
+        <li>Class - IslandoraSolrResultsTable</l1>
+        <li>Method - displayResults</l1>
+        </ul>
+        ", array('!page' => l("Islandora_solr_search configuration page", 'admin/settings/islandora_solr_search'),)
+      );
+  }
+}
+
+
+/**
+ * hook_form_alter
+ */
+function upei_vre_leg_form_islandora_solr_simple_search_form_alter(&$form, &$form_state) {
+ drupal_add_css(drupal_get_path('module', 'upei_vre_leg') .'/css/upei_vre_leg.css');
+ $form['simple']['inline'] = array('#prefix' => '<div class="container-inline">', '#suffix' => '</div>'); 
+ unset($form['islandora_simple_search_query']);
+ unset($form['submit']);
+ $form['simple']['inline']["islandora_simple_search_query"] = array(
+      '#size' => '15',
+      '#type' => 'textfield',
+      '#title' => '',
+      '#default_value' => $default,
+      '#required' => $required,
+    );
+    $form['simple']['inline']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('search')
+    );
+    return $form;
+}
+
+
