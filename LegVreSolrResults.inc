@@ -29,7 +29,7 @@ class LegVreSolrResults extends IslandoraSolrResults {
    * This output has been customized for Legislative assembly books
    */
   function printResults($results) {
-    drupal_add_css(drupal_get_path('module', 'upei_vre_leg') .'/css/upei_vre_leg.css');
+    drupal_add_css(drupal_get_path('module', 'upei_vre_leg') . '/css/upei_vre_leg.css');
     global $base_url;
     $items = array();
     $type = "ol";
@@ -59,21 +59,31 @@ class LegVreSolrResults extends IslandoraSolrResults {
       return "no results";
     }
     $q = $responseArray['responseHeader']['params']['q'];
-     //we need to get rid of fields and delimiters, the book assumes full text search only
-    $terms = preg_split('/"|\)|\(| or | OR | and | AND |[a-z._A-Z]*:|#(?<!\\\)\:#/',$q); 
+    //we need to get rid of fields and delimiters, the book assumes full text search only
+    $terms = preg_split('/"|\)|\(| or | OR | and | AND |[a-z._A-Z]*:|#(?<!\\\)\:#/', $q);
     //q_string should now be only the words searched for in the solr block minus the fields and modifiers
-    $q_string = trim(implode(" ",$terms));
+    $q_string = trim(implode(" ", $terms));
     foreach ($results->response->docs as $doc) {
       $rows = array();
       $row = 0;
       $snippet = NULL;
-      $link_pid = isset($doc->PARENT_pid_s) ? $doc->PARENT_pid_s : $doc->PID;
-      $link_title = isset($doc->title) ? $doc->title : $doc->PID;
       $sequence_number_variable = 'rels.isSequenceNumber';
       $pid = $doc->PID;
-      $l = l($link_title, 'fedora/repository/' . htmlspecialchars($link_pid, ENT_QUOTES, 'utf-8'), array('query' => array('startpage' => $doc->{"$sequence_number_variable"},'solrq' => $q_string)));
-      $rows[$row][] =  array('data' => l("<img src = '$base_url/fedora/repository/" . $pid . "/TN' class='upei_vre_leg_align-left upei_vre_leg_frame'/>",
-          'fedora/repository/' . htmlspecialchars($link_pid, ENT_QUOTES, 'utf-8'), array('query' => array('startpage' => $doc->{"$sequence_number_variable"},'solrq'=>$q_string),'html'=>TRUE)),
+      $cmodel_field = 'rels.hasModel';
+      $cmodel = $doc->$cmodel_field;
+      if ($cmodel == 'info:fedora/islandora:biography_image_CModel') {
+        $link_pid = $doc->PID;
+        $link_title = $doc->title;
+        $l = l($link_title, 'fedora/repository/' . htmlspecialchars($link_pid, ENT_QUOTES, 'utf-8'));
+      }
+      else {
+        $link_pid = isset($doc->PARENT_pid_s) ? $doc->PARENT_pid_s : $doc->PID;
+        $link_title = isset($doc->title) ? $doc->title : $doc->PID;
+        $l = l($link_title, 'fedora/repository/' . htmlspecialchars($link_pid, ENT_QUOTES, 'utf-8'), array('query' => array('startpage' => $doc->{"$sequence_number_variable"}, 'solrq' => $q_string)));
+      }
+
+
+      $rows[$row][] = array('data' => l("<img src = '$base_url/fedora/repository/" . $pid . "/TN' class='upei_vre_leg_align-left upei_vre_leg_frame'/>", 'fedora/repository/' . htmlspecialchars($link_pid, ENT_QUOTES, 'utf-8'), array('query' => array('startpage' => $doc->{"$sequence_number_variable"}, 'solrq' => $q_string), 'html' => TRUE)),
         'rowspan' => 8);
 
       $rows[$row][] = array(
@@ -84,7 +94,7 @@ class LegVreSolrResults extends IslandoraSolrResults {
         'data' => $l,
       );
       //PARENT_dateIssued_s
-      //if ($doc->PARENT_dateIssued_s) {
+      if ($doc->PARENT_dateIssued_s) {
         $rows[$row][] = array(
           'data' => 'Date:',
           'header' => TRUE,
@@ -92,8 +102,8 @@ class LegVreSolrResults extends IslandoraSolrResults {
         $rows[$row++][] = array(
           'data' => $doc->PARENT_dateIssued_s,
         );
-      //}
-      //if (isset($doc->ocr_text)) {
+      }
+      if (isset($doc->ocr_text)) {
         $rows[$row][] = array(
           'data' => 'Snippet:',
           'header' => TRUE,
@@ -101,7 +111,7 @@ class LegVreSolrResults extends IslandoraSolrResults {
         $rows[$row++][] = array(
           'data' => $doc->ocr_text,
         );
-      //}
+      }
       if (!empty($doc->PARENT_session_s)) {
         $rows[$row][] = array(
           'data' => 'Source:',
@@ -111,7 +121,7 @@ class LegVreSolrResults extends IslandoraSolrResults {
           'data' => 'Part of ' . (string) 'Session ' . $doc->PARENT_session_s . ', Assembly ' . (string) $doc->PARENT_assembly_s,
         );
       }
-      //if (isset($doc->PARENT_genre_s)) {
+      if (isset($doc->PARENT_genre_s)) {
         $rows[$row][] = array(
           'data' => 'Type:',
           'header' => TRUE,
@@ -119,7 +129,7 @@ class LegVreSolrResults extends IslandoraSolrResults {
         $rows[$row++][] = array(
           'data' => $doc->PARENT_genre_s,
         );
-      //}
+      }
       if (isset($doc->PARENT_topis_s)) {
         $rows[$row][] = array(
           'data' => 'Topic:',
@@ -138,6 +148,24 @@ class LegVreSolrResults extends IslandoraSolrResults {
           'data' => $doc->PARENT_subject_s,
         );
       }
+      if (isset($doc->subject)) {
+        $rows[$row][] = array(
+          'data' => 'Subject(s):',
+          'header' => TRUE,
+        );
+        $rows[$row++][] = array(
+          'data' => implode(', ', $doc->subject),
+        );
+      }
+      if (isset($doc->coverage)) {
+        $rows[$row][] = array(
+          'data' => 'Information:',
+          'header' => TRUE,
+        );
+        $rows[$row++][] = array(
+          'data' => implode(', ', $doc->coverage),
+        );
+      }
       if (is_array($keys)) {
         $snippet = $highlightResults[$value][$keys[0]];
       }
@@ -152,7 +180,7 @@ class LegVreSolrResults extends IslandoraSolrResults {
       //$tnString = "<img src = '$base_url/fedora/repository/" . $pid . "/TN' class='upei_vre_leg_align-left upei_vre_leg_frame'/>";
       $items[] = theme_table(NULL, $rows, array('class' => 'islandora_solr_search_results_object'));
     }
-    
+
     $output = theme_item_list($items, $title, $type, array('class' => 'stuff', 'start' => ($recordStart + 1)));
     if (variable_get('islandora_solr_search_debug_mode', 0)) { // debug dump
       $results_r .= "<pre>Results: " . print_r($results, TRUE) . "</pre>";
