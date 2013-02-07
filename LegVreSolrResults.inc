@@ -60,7 +60,7 @@ class LegVreSolrResults extends IslandoraSolrResults {
     }
     $q = $responseArray['responseHeader']['params']['q'];
     //we need to get rid of fields and delimiters, the book assumes full text search only
-    $terms = preg_split('/"|\)|\(| or | OR | and | AND |[a-z._A-Z]*:|#(?<!\\\)\:#/', $q);
+    $terms = preg_split('/"| or | OR | and | AND |[a-z._A-Z]*:|#(?<!\\\)\:#/', $q);
     //q_string should now be only the words searched for in the solr block minus the fields and modifiers
     $q_string = trim(implode(" ", $terms));
     foreach ($results->response->docs as $doc) {
@@ -93,6 +93,42 @@ class LegVreSolrResults extends IslandoraSolrResults {
       $rows[$row++][] = array(
         'data' => $l,
       );
+      if (isset($doc->mods_affiliation)) {
+        $rows[$row][] = array(
+          'data' => 'Affiliation(s):',
+          'header' => TRUE,
+        );
+        $rows[$row++][] = array(
+          'data' =>  $doc->mods_affiliation,
+        );
+      }
+      if (isset($doc->region)) {
+        $rows[$row][] = array(
+          'data' => 'Riding(s):',
+          'header' => TRUE,
+        );
+        $rows[$row++][] = array(
+          'data' =>  $doc->region,
+        );
+      }
+      if (isset($doc->mods_occupation)) {
+        $rows[$row][] = array(
+          'data' => 'Occupation(s):',
+          'header' => TRUE,
+        );
+        $rows[$row++][] = array(
+          'data' =>  $doc->mods_occupation,
+        );
+      }
+       if (isset($doc->mods_role)) {
+        $rows[$row][] = array(
+          'data' => 'Office(s):',
+          'header' => TRUE,
+        );
+        $rows[$row++][] = array(
+          'data' =>  $doc->mods_role,
+        );
+      }
       //PARENT_dateIssued_s
       if ($doc->PARENT_dateIssued_s) {
         $rows[$row][] = array(
@@ -130,6 +166,7 @@ class LegVreSolrResults extends IslandoraSolrResults {
           'data' => $doc->PARENT_genre_s,
         );
       }
+
       if (isset($doc->PARENT_topis_s)) {
         $rows[$row][] = array(
           'data' => 'Topic:',
@@ -139,6 +176,7 @@ class LegVreSolrResults extends IslandoraSolrResults {
           'data' => $doc->PARENT_topic_s,
         );
       }
+
       if (isset($doc->PARENT_subject_s)) {
         $rows[$row][] = array(
           'data' => 'Subject:',
@@ -166,6 +204,7 @@ class LegVreSolrResults extends IslandoraSolrResults {
           'data' => implode(', ', $doc->coverage),
         );
       }
+      
       if (is_array($keys)) {
         $snippet = $highlightResults[$value][$keys[0]];
       }
