@@ -125,8 +125,12 @@ class LegVreSolrResults extends IslandoraSolrResults {
           'data' => 'Office(s):',
           'header' => TRUE,
         );
+        $offices = $doc->mods_role;        
+        if(is_array($offices)){
+          $offices = implode(', ', $offices);
+        }
         $rows[$row++][] = array(
-          'data' =>  $doc->mods_role,
+          'data' =>  $offices,
         );
       }
       //PARENT_dateIssued_s
